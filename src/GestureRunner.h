@@ -15,12 +15,13 @@ using json = nlohmann::json;
 
 class GestureRunner {
 public:
-    GestureRunner(json &loops, string loopKey) {
-        loop = loops[loopKey];
+    GestureRunner(json &jsonLoop, string loop_key) {
+        loop = jsonLoop;
         ind = 0;
         pos = glm::vec2(0, 0);
         startTime = ofGetElapsedTimef();
         duration = 2;
+        loopKey = loop_key;
     }
     
     void step() {
@@ -86,6 +87,7 @@ public:
     glm::vec2 pos;
     string group;
     string key;
+    string loopKey;
     float startTime;
     float duration;
 };

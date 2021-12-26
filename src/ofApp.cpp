@@ -17,7 +17,7 @@ void ofApp::setup(){
 	ofxTCPSettings settings("127.0.0.1", 11999);
     
     ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, int duration, bool loop, std::string &group, std::string &key){
-        auto g = GestureRunner(loops, loopName);
+        auto g = GestureRunner(loops[loopName], loopName);
         g.duration = duration;
         g.group = group;
         g.key = key;
@@ -49,6 +49,7 @@ void ofApp::update(){
 			msgRx = str;
             loops = json::parse(msgRx);
             gest = new GestureRunner(loops, "firstLoop");
+            cout << "got loops" << endl;
 		}
 	}else{
 		msgTx = "";
@@ -82,12 +83,12 @@ void ofApp::draw(){
 //		ofDrawBitmapString("status: server not found. launch server app and check ports!\n\nreconnecting in "+ofToString( (5000 - deltaTime) / 1000 )+" seconds", 15, 55);
 //	}
     ofSetColor(255);
-    if(loops.size() > 0) {
-        auto str = loops["firstLoop"][0]["pos"];
-        ofDrawBitmapString(str, 100, 100);
-        gest->step2();
-        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
-    }
+//    if(loops.size() > 0) {
+//        auto str = loops["firstLoop"][0]["pos"];
+//        ofDrawBitmapString(str, 100, 100);
+//        gest->step2();
+//        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
+//    }
     for(auto &g : gestures) {
         g.step2();
         ofDrawCircle(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 10);
