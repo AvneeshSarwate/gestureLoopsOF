@@ -33,6 +33,38 @@ public:
         }
     }
     
+    glm::vec2 getPos(float normTime) {
+        int ind = loop.size() / 2;
+        float stepSize = loop.size() / 4;
+        
+        auto continueSearch = [&] () {
+            bool bounded = 0 <= ind && ind < loop.size();
+            bool found = loop[ind-1]["ts"] <= normTime && normTime < loop[ind]["ts"];
+            return bounded && !found;
+        };
+        
+        while(continueSearch()) {
+            if(normTime == loop[ind]["ts"]) break;
+            if(normTime < loop[ind]["ts"]) {
+                ind -= floor(stepSize/2);
+            } else {
+                ind += floor(stepSize/2);
+            }
+            stepSize = std::fmax(1.0, stepSize/2);
+        }
+        
+        if(std::fmod(ind, 1.) == 0) return glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
+        
+        float interHitTime = loop[ind]["ts"].get<float>() - loop[ind-1]["ts"].get<float>();
+        float hitProgressTime = normTime - loop[ind-1]["ts"].get<float>();
+        float lerp_a = hitProgressTime / interHitTime;
+        
+        auto last = glm::vec2(loop[ind-1]["pos"]["x"], loop[ind-1]["pos"]["y"]);
+        auto next = glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
+        
+        return last*(1-lerp_a) + next*lerp_a;
+    }
+    
     bool isDone() {
         return ind == loop.size();
     }
