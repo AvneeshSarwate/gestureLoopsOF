@@ -1,0 +1,1 @@
+gets gesture curve values from js_server.ipynb in https://github.com/AvneeshSarwate/abletonAutomationExtraction

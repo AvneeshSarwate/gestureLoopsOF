@@ -1,1 +1,3 @@
 ofxNetwork
+ofxOsc
+ofxPubSubOsc

@@ -6,6 +6,7 @@
 //
 
 #include "libs/json.hpp"
+#include "ofMain.h"
 
 using json = nlohmann::json;
 
@@ -18,6 +19,7 @@ public:
         loop = loops[loopKey];
         ind = 0;
         pos = glm::vec2(0, 0);
+        startTime = ofGetElapsedTimef();
     }
     
     void step() {
@@ -40,6 +42,8 @@ public:
     glm::vec2 pos;
     string group;
     string key;
+    float startTime;
+    float duration;
 };
 
 #endif /* GestureRunner_h */
