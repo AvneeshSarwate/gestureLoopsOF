@@ -75,7 +75,7 @@ void ofApp::draw(){
     if(loops.size() > 0) {
         auto str = loops["firstLoop"][0]["pos"];
         ofDrawBitmapString(str, 100, 100);
-        gest->step();
+        gest->step2();
         ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
     }
 }

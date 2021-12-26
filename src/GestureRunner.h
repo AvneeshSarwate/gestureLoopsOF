@@ -20,6 +20,7 @@ public:
         ind = 0;
         pos = glm::vec2(0, 0);
         startTime = ofGetElapsedTimef();
+        duration = 2;
     }
     
     void step() {
@@ -33,22 +34,31 @@ public:
         }
     }
     
+    void step2() {
+        float age = ofGetElapsedTimef() - startTime;
+        float phase = std::fmod(age, duration) / duration;
+        pos = getPos(phase);
+    }
+    
     glm::vec2 getPos(float normTime) {
         int ind = loop.size() / 2;
         float stepSize = loop.size() / 4;
         
         auto continueSearch = [&] () {
             bool bounded = 0 <= ind && ind < loop.size();
-            bool found = loop[ind-1]["ts"] <= normTime && normTime < loop[ind]["ts"];
+            int i = ind;
+            float st = loop[ind-1]["ts"];
+            float end = loop[ind]["ts"];
+            bool found = st <= normTime && normTime < end;
             return bounded && !found;
         };
         
         while(continueSearch()) {
             if(normTime == loop[ind]["ts"]) break;
             if(normTime < loop[ind]["ts"]) {
-                ind -= floor(stepSize/2);
+                ind -= stepSize;
             } else {
-                ind += floor(stepSize/2);
+                ind += stepSize;
             }
             stepSize = std::fmax(1.0, stepSize/2);
         }
