@@ -40,7 +40,7 @@ class ofApp : public ofBaseApp{
         int size;
     
         GestureRunner *gest;
-        set<GestureRunner> gestures;
+        vector<GestureRunner> gestures;
     
         json loops;
 };

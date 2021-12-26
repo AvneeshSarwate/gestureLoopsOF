@@ -1,5 +1,6 @@
 #include "ofApp.h"
 #include "libs/json.hpp"
+#include "ofxOscSubscriber.h"
 
 #define RECONNECT_TIME 400
 
@@ -14,6 +15,14 @@ void ofApp::setup(){
 	msgRx	= "";
 
 	ofxTCPSettings settings("127.0.0.1", 11999);
+    
+    ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, int duration, bool loop, std::string &group, std::string &key){
+        auto g = GestureRunner(loops, loopName);
+        g.duration = duration;
+        g.group = group;
+        g.key = key;
+        gestures.push_back(g);
+    });
 
 	// set other options:
 	//settings.blocking = false;
@@ -32,6 +41,7 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    int numLoops = loops.size();
 	if(tcpClient.isConnected()){
 		// we are connected - lets try to receive from the server
 		string str = tcpClient.receive();
@@ -77,6 +87,10 @@ void ofApp::draw(){
         ofDrawBitmapString(str, 100, 100);
         gest->step2();
         ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
+    }
+    for(auto &g : gestures) {
+        g.step2();
+        ofDrawCircle(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 10);
     }
 }
 
