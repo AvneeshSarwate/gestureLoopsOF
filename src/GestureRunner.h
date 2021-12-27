@@ -45,6 +45,8 @@ public:
         int ind = loop.size() / 2;
         float stepSize = loop.size() / 4;
         
+        if(normTime == 0) return glm::vec2(loop[0]["pos"]["x"], loop[0]["pos"]["y"]);
+        
         auto continueSearch = [&] () {
             bool bounded = 0 < ind && ind < loop.size();
             if(!bounded) return false;
@@ -58,15 +60,15 @@ public:
         while(continueSearch()) {
             if(normTime == loop[ind]["ts"]) break;
             if(normTime < loop[ind]["ts"]) {
-                ind -= stepSize;
+                ind -= std::floor(std::fmax(1.0, stepSize));
             } else {
-                ind += stepSize;
+                ind += std::floor(std::fmax(1.0, stepSize));
             }
-            stepSize = std::fmax(1.0, stepSize/2);
+            stepSize /= 2.;
         }
         //todo - figure out this interpolation crap - is "close enough" for now
         //but never actually will progress pass this line?
-        if(std::fmod(ind, 1.) == 0) return glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
+//        if(std::fmod(stepSize, 1.) == 0) return glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
         
         float interHitTime = loop[ind]["ts"].get<float>() - loop[ind-1]["ts"].get<float>();
         float hitProgressTime = normTime - loop[ind-1]["ts"].get<float>();
