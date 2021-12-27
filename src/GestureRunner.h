@@ -22,27 +22,6 @@ struct TimePoint {
 typedef struct TimePoint TimePoint;
 
 
-
-vector<TimePoint> extractLoopData(json &loop) {
-    int loopSize = loop.size();
-    vector<TimePoint> loopData;
-    for(int i = 0; i < loopSize; i++) {
-        TimePoint tp(glm::vec2(loop[i]["pos"]["x"], loop[i]["pos"]["y"]), loop[i]["ts"]);
-        loopData.push_back(tp);
-    }
-    return loopData;
-}
-
-map<string, vector<TimePoint>> restructureJson(json &loops) {
-    map<string, vector<TimePoint>> loopMap;
-    for (auto& el : loops.items()) {
-//        std::cout << el.key() << " : " << el.value() << "\n";
-        loopMap.insert({el.key(), extractLoopData(el.value())});
-    }
-}
-
-
-
 class GestureRunner {
 public:
     GestureRunner(json &jsonLoop, string loop_key) : loop(jsonLoop) {

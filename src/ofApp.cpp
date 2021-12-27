@@ -1,6 +1,7 @@
 #include "ofApp.h"
 #include "libs/json.hpp"
 #include "ofxOscSubscriber.h"
+#include "utility.h"
 
 #define RECONNECT_TIME 400
 
