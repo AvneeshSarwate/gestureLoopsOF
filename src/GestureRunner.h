@@ -34,6 +34,7 @@ public:
         lastAge = 0;
         origin = glm::vec2(loop[0].pos.x, loop[0].pos.y);
         pos = origin;
+        lastPos = origin;
     }
     
     void naiveStep() {
@@ -73,6 +74,9 @@ public:
             double phase = std::fmod(age, duration) / duration;
             if(phase < lastPhase) {
                 auto delta = getPos(phase) - getPos(0);
+                if(glm::length(delta) > 0.2) {
+                    int x = 5;
+                }
                 pos = origin + delta;
             } else {
                 normalDelta();
@@ -81,6 +85,7 @@ public:
     }
     
     void step() {
+        lastPos = pos;
         if(deltaLoop) deltaStep();
         else absoluteStep();
         lastAge = ofGetElapsedTimef() - startTime;
@@ -92,17 +97,23 @@ public:
         double lastPhase = std::fmod(lastAge, duration) / duration;
         double phase = std::fmod(age, duration) / duration;
         
+        glm::vec2 delta;
         if(phase >= lastPhase) {
             auto lastPos = getPos(lastPhase);
             auto pos = getPos(phase);
-            return pos - lastPos;
+            delta = pos - lastPos;
         } else { //if the phase has rolled over in the interval
             auto endStart = getPos(lastPhase);
             auto endEnd = getPos(1);
             auto startStart = getPos(0);
             auto startEnd = getPos(phase);
-            return (endEnd-endStart) + (startEnd-startStart);
+            delta = (endEnd-endStart) + (startEnd-startStart);
         }
+        if(glm::length(delta) > 0.2) {
+            bool flipped = phase < lastPhase;
+            int x = 5;
+        }
+        return delta;
     }
     
     glm::vec2 getPos(double normTime) {
@@ -150,6 +161,7 @@ public:
     vector<TimePoint>& loop;
     int ind;
     glm::vec2 pos;
+    glm::vec2 lastPos;
     glm::vec2 origin;
     string group;
     string key;

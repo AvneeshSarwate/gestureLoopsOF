@@ -88,16 +88,24 @@ void ofApp::draw(){
 //	}else{
 //		ofDrawBitmapString("status: server not found. launch server app and check ports!\n\nreconnecting in "+ofToString( (5000 - deltaTime) / 1000 )+" seconds", 15, 55);
 //	}
-    ofSetColor(255);
+    
 //    if(loops.size() > 0) {
 //        auto str = loops["firstLoop"][0]["pos"];
 //        ofDrawBitmapString(str, 100, 100);
 //        gest->step2();
 //        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
 //    }
+    int i = 0;
     for(auto &g : gestures) {
+        ofSetColor(255);
         g.step();
-        ofDrawCircle(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 10);
+        glm::vec2 pos = glm::vec2(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight());
+        ofDrawCircle(pos.x, pos.y, 10);
+        
+//        ofSetColor(255, 0, 0);
+//        ofDrawBitmapString(std::to_string(i), pos.x, pos.y);
+        
+        i++;
     }
 }
 
