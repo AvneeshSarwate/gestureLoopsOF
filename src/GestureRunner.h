@@ -74,9 +74,6 @@ public:
             double phase = std::fmod(age, duration) / duration;
             if(phase < lastPhase) {
                 auto delta = getPos(phase) - getPos(0);
-                if(glm::length(delta) > 0.2) {
-                    int x = 5;
-                }
                 pos = origin + delta;
             } else {
                 normalDelta();
@@ -97,22 +94,28 @@ public:
         double lastPhase = std::fmod(lastAge, duration) / duration;
         double phase = std::fmod(age, duration) / duration;
         
+        auto deltaCheck = [&](glm::vec2 delta, double phase, double lastPhase){
+            if(glm::length(delta) > 0.2) {
+                bool flipped = phase < lastPhase;
+                int x = 5;
+            }
+        };
+        
         glm::vec2 delta;
         if(phase >= lastPhase) {
             auto lastPos = getPos(lastPhase);
             auto pos = getPos(phase);
             delta = pos - lastPos;
+            deltaCheck(delta, phase, lastPhase);
         } else { //if the phase has rolled over in the interval
             auto endStart = getPos(lastPhase);
             auto endEnd = getPos(1);
             auto startStart = getPos(0);
             auto startEnd = getPos(phase);
             delta = (endEnd-endStart) + (startEnd-startStart);
+            deltaCheck(delta, phase, lastPhase);
         }
-        if(glm::length(delta) > 0.2) {
-            bool flipped = phase < lastPhase;
-            int x = 5;
-        }
+        
         return delta;
     }
     
@@ -150,8 +153,13 @@ public:
         
         auto last = glm::vec2(loop[ind-1].pos.x, loop[ind-1].pos.y);
         auto next = glm::vec2(loop[ind].pos.x, loop[ind].pos.y);
+        auto pos = last*(1-lerp_a) + next*lerp_a;
         
-        return last*(1-lerp_a) + next*lerp_a;
+        if(pos.x < 0 || pos.y < 0) {
+            int x = 5;
+        }
+        
+        return pos;
     }
     
     bool isDone() {

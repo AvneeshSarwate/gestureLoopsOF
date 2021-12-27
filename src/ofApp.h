@@ -42,7 +42,7 @@ class ofApp : public ofBaseApp{
         GestureRunner *gest;
         vector<GestureRunner> gestures;
     
-        json loops;
-        map<string, vector<TimePoint>> loops2;
+        json jsonLoops;
+        map<string, vector<TimePoint>> stdLoops;
 };
 

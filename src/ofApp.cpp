@@ -18,7 +18,7 @@ void ofApp::setup(){
 	ofxTCPSettings settings("127.0.0.1", 11999);
     
     ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, float duration, bool loop, std::string &group, std::string &key){
-        auto g = GestureRunner(loops2[loopName], loopName);
+        auto g = GestureRunner(stdLoops[loopName], loopName);
         g.duration = duration;
         g.group = group;
         g.key = key;
@@ -46,14 +46,18 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    int numLoops = loops.size();
+    int numLoops = jsonLoops.size();
 	if(tcpClient.isConnected()){
 		// we are connected - lets try to receive from the server
 		string str = tcpClient.receive();
 		if( str.length() > 0 ){
 			msgRx = str;
-            loops = json::parse(msgRx);
-            loops2 = restructureJson(loops);
+            jsonLoops = json::parse(msgRx);
+            auto newLoops = restructureJson(jsonLoops);
+            for ( const auto &loopData : newLoops ) {
+                stdLoops[loopData.first] = loopData.second;
+            }
+            
 //            gest = new GestureRunner(loops, "firstLoop");
             cout << "got loops" << endl;
 		}
