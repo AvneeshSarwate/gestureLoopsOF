@@ -24,6 +24,10 @@ void ofApp::setup(){
         g.key = key;
         gestures.push_back(g);
     });
+    
+    ofxSubscribeOsc(7072, "/clearAll", [&](){
+        gestures.clear();
+    });
 
 	// set other options:
 	//settings.blocking = false;
@@ -49,7 +53,7 @@ void ofApp::update(){
 		if( str.length() > 0 ){
 			msgRx = str;
             loops = json::parse(msgRx);
-            loops2 = restructureJson(loops); //todo: why does this line break the linker?
+            loops2 = restructureJson(loops);
 //            gest = new GestureRunner(loops, "firstLoop");
             cout << "got loops" << endl;
 		}
