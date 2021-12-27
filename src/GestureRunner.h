@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 class GestureRunner {
 public:
-    GestureRunner(json &jsonLoop, string loop_key) {
+    GestureRunner(json &jsonLoop, string loop_key) : loop(jsonLoop) {
         loop = jsonLoop;
         ind = 0;
         pos = glm::vec2(0, 0);
@@ -121,7 +121,7 @@ public:
         return ind == loop.size();
     }
     
-    json loop;
+    json& loop;
     int ind;
     glm::vec2 pos;
     glm::vec2 origin;
