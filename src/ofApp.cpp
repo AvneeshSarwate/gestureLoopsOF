@@ -16,7 +16,7 @@ void ofApp::setup(){
 
 	ofxTCPSettings settings("127.0.0.1", 11999);
     
-    ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, int duration, bool loop, std::string &group, std::string &key){
+    ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, float duration, bool loop, std::string &group, std::string &key){
         auto g = GestureRunner(loops[loopName], loopName);
         g.duration = duration;
         g.group = group;
