@@ -90,7 +90,7 @@ void ofApp::draw(){
 //        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
 //    }
     for(auto &g : gestures) {
-        g.step2();
+        g.deltaStep();
         ofDrawCircle(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 10);
     }
 }
