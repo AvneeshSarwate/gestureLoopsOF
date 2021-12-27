@@ -43,5 +43,6 @@ class ofApp : public ofBaseApp{
         vector<GestureRunner> gestures;
     
         json loops;
+        map<string, vector<TimePoint>> loops2;
 };
 

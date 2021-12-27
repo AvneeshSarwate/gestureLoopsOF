@@ -48,6 +48,7 @@ void ofApp::update(){
 		if( str.length() > 0 ){
 			msgRx = str;
             loops = json::parse(msgRx);
+            loops2 = restructureJson(loops); //todo: why does this line break the linker?
 //            gest = new GestureRunner(loops, "firstLoop");
             cout << "got loops" << endl;
 		}

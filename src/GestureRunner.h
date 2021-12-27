@@ -13,6 +13,36 @@ using json = nlohmann::json;
 #ifndef GestureRunner_h
 #define GestureRunner_h
 
+
+struct TimePoint {
+    glm::vec2 pos;
+    double ts;
+    TimePoint(glm::vec2 pos, double ts) : pos(pos), ts(ts) {};
+};
+typedef struct TimePoint TimePoint;
+
+
+
+vector<TimePoint> extractLoopData(json &loop) {
+    int loopSize = loop.size();
+    vector<TimePoint> loopData;
+    for(int i = 0; i < loopSize; i++) {
+        TimePoint tp(glm::vec2(loop[i]["pos"]["x"], loop[i]["pos"]["y"]), loop[i]["ts"]);
+        loopData.push_back(tp);
+    }
+    return loopData;
+}
+
+map<string, vector<TimePoint>> restructureJson(json &loops) {
+    map<string, vector<TimePoint>> loopMap;
+    for (auto& el : loops.items()) {
+//        std::cout << el.key() << " : " << el.value() << "\n";
+        loopMap.insert({el.key(), extractLoopData(el.value())});
+    }
+}
+
+
+
 class GestureRunner {
 public:
     GestureRunner(json &jsonLoop, string loop_key) : loop(jsonLoop) {
@@ -123,9 +153,6 @@ public:
             }
             stepSize /= 2.;
         }
-        //todo - figure out this interpolation crap - is "close enough" for now
-        //but never actually will progress pass this line?
-//        if(std::fmod(stepSize, 1.) == 0) return glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
         
         double interHitTime = loop[ind]["ts"].get<double>() - loop[ind-1]["ts"].get<double>();
         double hitProgressTime = normTime - loop[ind-1]["ts"].get<double>();
