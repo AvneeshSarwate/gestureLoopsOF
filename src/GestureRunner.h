@@ -24,7 +24,7 @@ typedef struct TimePoint TimePoint;
 
 class GestureRunner {
 public:
-    GestureRunner(json &jsonLoop, string loop_key) : loop(jsonLoop) {
+    GestureRunner(vector<TimePoint> &jsonLoop, string loop_key) : loop(jsonLoop) {
         loop = jsonLoop;
         ind = 0;
         pos = glm::vec2(0, 0);
@@ -32,19 +32,19 @@ public:
         duration = 2;
         loopKey = loop_key;
         lastAge = 0;
-        origin = glm::vec2(loop[0]["pos"]["x"], loop[0]["pos"]["y"]);
+        origin = glm::vec2(loop[0].pos.x, loop[0].pos.y);
         pos = origin;
     }
     
     void naiveStep() {
-        if(ind < loop.size()) {
-            auto posJson = loop[ind]["pos"];
-            if(!posJson.is_string()) {
-                auto debugJson = posJson.dump();
-                pos = glm::vec2(posJson["x"], posJson["y"]);
-            }
-            ind++;
-        }
+        // if(ind < loop.size()) {
+        //     auto posJson = loop[ind]["pos"];
+        //     if(!posJson.is_string()) {
+        //         auto debugJson = posJson.dump();
+        //         pos = glm::vec2(posJson["x"], posJson["y"]);
+        //     }
+        //     ind++;
+        // }
     }
     
     void absoluteStep() {
@@ -110,22 +110,22 @@ public:
         int ind = len / 2;
         double stepSize = loop.size() / 4;
         
-        if(normTime == 0) return glm::vec2(loop[0]["pos"]["x"], loop[0]["pos"]["y"]);
-        if(normTime == 1) return glm::vec2(loop[len-1]["pos"]["x"], loop[len-1]["pos"]["y"]);
+        if(normTime == 0) return glm::vec2(loop[0].pos.x, loop[0].pos.y);
+        if(normTime == 1) return glm::vec2(loop[len-1].pos.x, loop[len-1].pos.y);
         
         auto continueSearch = [&] () {
             bool bounded = 0 < ind && ind < loop.size();
             if(!bounded) return false;
             int i = ind;
-            double st = loop[ind-1]["ts"];
-            double end = loop[ind]["ts"];
+            double st = loop[ind-1].ts;
+            double end = loop[ind].ts;
             bool found = st <= normTime && normTime <= end;
             return !found;
         };
         
         while(continueSearch()) {
-            if(normTime == loop[ind]["ts"]) break;
-            if(normTime < loop[ind]["ts"]) {
+            if(normTime == loop[ind].ts) break;
+            if(normTime < loop[ind].ts) {
                 ind -= std::floor(std::fmax(1.0, stepSize));
             } else {
                 ind += std::floor(std::fmax(1.0, stepSize));
@@ -133,12 +133,12 @@ public:
             stepSize /= 2.;
         }
         
-        double interHitTime = loop[ind]["ts"].get<double>() - loop[ind-1]["ts"].get<double>();
-        double hitProgressTime = normTime - loop[ind-1]["ts"].get<double>();
+        double interHitTime = loop[ind].ts - loop[ind-1].ts;
+        double hitProgressTime = normTime - loop[ind-1].ts;
         double lerp_a = hitProgressTime / interHitTime;
         
-        auto last = glm::vec2(loop[ind-1]["pos"]["x"], loop[ind-1]["pos"]["y"]);
-        auto next = glm::vec2(loop[ind]["pos"]["x"], loop[ind]["pos"]["y"]);
+        auto last = glm::vec2(loop[ind-1].pos.x, loop[ind-1].pos.y);
+        auto next = glm::vec2(loop[ind].pos.x, loop[ind].pos.y);
         
         return last*(1-lerp_a) + next*lerp_a;
     }
@@ -147,7 +147,7 @@ public:
         return ind == loop.size();
     }
     
-    json& loop;
+    vector<TimePoint>& loop;
     int ind;
     glm::vec2 pos;
     glm::vec2 origin;
