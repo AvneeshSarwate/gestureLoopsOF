@@ -48,7 +48,7 @@ void ofApp::update(){
 		if( str.length() > 0 ){
 			msgRx = str;
             loops = json::parse(msgRx);
-            gest = new GestureRunner(loops, "firstLoop");
+//            gest = new GestureRunner(loops, "firstLoop");
             cout << "got loops" << endl;
 		}
 	}else{
@@ -90,7 +90,7 @@ void ofApp::draw(){
 //        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
 //    }
     for(auto &g : gestures) {
-        g.deltaStep();
+        g.step();
         ofDrawCircle(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 10);
     }
 }

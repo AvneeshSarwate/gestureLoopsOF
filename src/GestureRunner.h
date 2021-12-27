@@ -22,12 +22,12 @@ public:
         startTime = ofGetElapsedTimef();
         duration = 2;
         loopKey = loop_key;
-        lastDeltaAge = 0;
-        origin = glm::vec2(0.5, 0.5);
+        lastAge = 0;
+        origin = glm::vec2(loop[0]["pos"]["x"], loop[0]["pos"]["y"]);
         pos = origin;
     }
     
-    void step() {
+    void naiveStep() {
         if(ind < loop.size()) {
             auto posJson = loop[ind]["pos"];
             if(!posJson.is_string()) {
@@ -38,7 +38,7 @@ public:
         }
     }
     
-    void step2() {
+    void absoluteStep() {
         double age = ofGetElapsedTimef() - startTime;
         double phase = std::fmod(age, duration) / duration;
         pos = getPos(phase);
@@ -51,16 +51,36 @@ public:
     }
     
     void deltaStep() {
-        auto delta = getDelta();
-        pos += delta;
-        pos = glm::vec2(modulo(pos.x, 1), modulo(pos.y, 1));
-        lastDeltaAge = ofGetElapsedTimef() - startTime;
+        auto normalDelta = [&] {
+            auto delta = getDelta();
+            pos += delta;
+            pos = glm::vec2(modulo(pos.x, 1), modulo(pos.y, 1));
+        };
+        if(deltaAccumulate) {
+            normalDelta();
+        } else {
+            double age = ofGetElapsedTimef() - startTime;
+            double lastPhase = std::fmod(lastAge, duration) / duration;
+            double phase = std::fmod(age, duration) / duration;
+            if(phase < lastPhase) {
+                auto delta = getPos(phase) - getPos(0);
+                pos = origin + delta;
+            } else {
+                normalDelta();
+            }
+        }
+    }
+    
+    void step() {
+        if(deltaLoop) deltaStep();
+        else absoluteStep();
+        lastAge = ofGetElapsedTimef() - startTime;
     }
     
     //todo - this only works if the delta time is less than the duration of the loop
     glm::vec2 getDelta() {
         double age = ofGetElapsedTimef() - startTime;
-        double lastPhase = std::fmod(lastDeltaAge, duration) / duration;
+        double lastPhase = std::fmod(lastAge, duration) / duration;
         double phase = std::fmod(age, duration) / duration;
         
         if(phase >= lastPhase) {
@@ -130,7 +150,9 @@ public:
     string loopKey;
     double startTime;
     double duration;
-    double lastDeltaAge;
+    double lastAge;
+    bool deltaLoop = true;
+    bool deltaAccumulate = true;
 };
 
 #endif /* GestureRunner_h */
