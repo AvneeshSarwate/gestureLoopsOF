@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxNetwork.h"
+#include "ofxVoronoi.h"
 #include "libs/json.hpp"
 #include "GestureRunner.h"
 
@@ -44,5 +45,9 @@ class ofApp : public ofBaseApp{
     
         json jsonLoops;
         map<string, vector<TimePoint>> stdLoops;
+    
+        bool renderWithVoronoi;
+        ofxVoronoi voronoi;
+        
 };
 

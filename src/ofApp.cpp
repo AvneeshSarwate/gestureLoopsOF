@@ -28,6 +28,8 @@ void ofApp::setup(){
     ofxSubscribeOsc(7072, "/clearAll", [&](){
         gestures.clear();
     });
+    
+    ofxSubscribeOsc(7072, "/useVoronoi", renderWithVoronoi);
 
 	// set other options:
 	//settings.blocking = false;
@@ -78,62 +80,52 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofClear(0, 0, 0, 0);
-//	ofSetColor(20);
-//	ofDrawBitmapString("openFrameworks TCP Send Example", 15, 30);
-//
-//	if(tcpClient.isConnected()){
-//		if(!msgTx.empty()){
-//			ofDrawBitmapString("sending:", 15, 55);
-//			ofDrawBitmapString(msgTx, 85, 55);
-//		}else{
-//			ofDrawBitmapString("status: type something to send data to port 11999", 15, 55);
-//		}
-//		ofDrawBitmapString("from server: \n" + msgRx, 15, 270);
-//	}else{
-//		ofDrawBitmapString("status: server not found. launch server app and check ports!\n\nreconnecting in "+ofToString( (5000 - deltaTime) / 1000 )+" seconds", 15, 55);
-//	}
-    
-//    if(loops.size() > 0) {
-//        auto str = loops["firstLoop"][0]["pos"];
-//        ofDrawBitmapString(str, 100, 100);
-//        gest->step2();
-//        ofDrawCircle(gest->pos.x*ofGetWidth(), gest->pos.y*ofGetHeight(), 10);
-//    }
-    int i = 0;
+    renderWithVoronoi = true;
+    vector<glm::vec3> gesturePoints;
     for(auto &g : gestures) {
         ofSetColor(255);
         g.step();
-        glm::vec2 pos = glm::vec2(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight());
-        ofDrawCircle(pos.x, pos.y, 10);
+        glm::vec3 pos = glm::vec3(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 0);
         
+        if(!renderWithVoronoi) ofDrawCircle(pos.x, pos.y, 10);
+        
+        gesturePoints.push_back(pos);
 //        ofSetColor(255, 0, 0);
 //        ofDrawBitmapString(std::to_string(i), pos.x, pos.y);
-        
-        i++;
+    }
+    
+    float grid = 10;
+    
+    for(int i = 0; i < grid; i++) {
+        for(int j = 0; j < grid; j++) {
+            gesturePoints.push_back(glm::vec3((i+.5)/grid*ofGetWidth(), (j+.5)/grid*ofGetHeight(), 0));
+        }
+    }
+    
+    if(renderWithVoronoi) {
+        auto rect = ofRectangle(0, 0, ofGetWidth(), ofGetHeight());
+        voronoi.setBounds(rect);
+        voronoi.setPoints(gesturePoints);
+        voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
+        int i = 0;
+        for(auto cell : voronoi.getCells()) {
+            auto cellPts = cell.points;
+            ofPolyline polyline;
+            polyline.addVertices(cellPts);
+            polyline.close();
+            
+            ofSetColor(float2randCol(i/10.));
+            ofFill();
+            drawClosedPolyline(polyline);
+            i++;
+        }
     }
 }
 
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(ofKeyEventArgs & key){
-	// you can only type if you're connected
-	// we accumulate 1 line of text and send every typed character
-	// on the next character after a breakline we clear the buffer
-//	if(tcpClient.isConnected()){
-//		if(key.key == OF_KEY_BACKSPACE || key.key == OF_KEY_DEL){
-//			if( !msgTx.empty() ){
-//				msgTx = msgTx.substr(0, msgTx.size()-1);
-//			}
-//		}else if (key.codepoint != 0){
-//			ofUTF8Append(msgTx, key.codepoint);
-//        }
-//        if(key.key == OF_KEY_RETURN) {
-//            tcpClient.send(msgTx);
-//        }
-//		if (!msgTx.empty() && msgTx.back() == '\n') {
-//			msgTx.clear();
-//		}
-//	}
+
 }
 
 //--------------------------------------------------------------

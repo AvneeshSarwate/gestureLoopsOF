@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Bucket
-   uuid = "1BCFDB02-352E-48FD-BF3D-EAA64FE366D4"
+   uuid = "15CFCF2A-A13C-4860-96EF-A79230785AE8"
    type = "1"
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "0056B1B6-4BC0-4646-B7D0-391F57C1757C"
+            uuid = "F496BA5D-BB6F-454E-A3C3-5BE34045FE06"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/GestureRunner.h"
+            filePath = "src/ofApp.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "100"
-            endingLineNumber = "100"
-            landmarkName = "getDelta()"
+            startingLineNumber = "111"
+            endingLineNumber = "111"
+            landmarkName = "ofApp::draw()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "5E3F2F23-FFD9-4CBC-BE0E-C5094C3306D5"
-            shouldBeEnabled = "No"
+            uuid = "3AF4C369-99A5-4D34-90BE-6C869DE6A63C"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/GestureRunner.h"
+            filePath = "src/ofApp.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "159"
-            endingLineNumber = "159"
-            landmarkName = "getPos(normTime)"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
+            landmarkName = "ofApp::draw()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
