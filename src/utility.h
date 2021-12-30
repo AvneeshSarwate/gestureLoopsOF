@@ -5,6 +5,7 @@
 //  Created by Avneesh Sarwate on 12/27/21.
 //
 #include "libs/json.hpp"
+#include "ofxVoronoi.h"
 
 using json = nlohmann::json;
 
@@ -59,6 +60,14 @@ ofRectangle getPlaneBbox(ofPlanePrimitive &plane) {
         rect.growToInclude(glm::vec2(pt.x, pt.y));
     }
     return rect;
+}
+
+ofPolyline makeCellPolyline(ofxVoronoiCell &cell) {
+    auto cellPts = cell.points;
+    ofPolyline polyline;
+    polyline.addVertices(cellPts);
+    polyline.close();
+    return polyline;
 }
 
 void drawClosedPolyline(ofPolyline &poly) {

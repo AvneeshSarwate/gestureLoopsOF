@@ -80,8 +80,18 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofClear(0, 0, 0, 0);
-    renderWithVoronoi = true;
+    
+//    renderWithVoronoi = true;
+    
     vector<glm::vec3> gesturePoints;
+    float grid = 10;
+    
+    for(int i = 0; i < grid; i++) {
+        for(int j = 0; j < grid; j++) {
+            gesturePoints.push_back(glm::vec3((i+.5)/grid*ofGetWidth(), (j+.5)/grid*ofGetHeight(), 0));
+        }
+    }
+    
     for(auto &g : gestures) {
         ofSetColor(255);
         g.step();
@@ -94,31 +104,30 @@ void ofApp::draw(){
 //        ofDrawBitmapString(std::to_string(i), pos.x, pos.y);
     }
     
-    float grid = 10;
-    
-    for(int i = 0; i < grid; i++) {
-        for(int j = 0; j < grid; j++) {
-            gesturePoints.push_back(glm::vec3((i+.5)/grid*ofGetWidth(), (j+.5)/grid*ofGetHeight(), 0));
-        }
-    }
-    
     if(renderWithVoronoi) {
         auto rect = ofRectangle(0, 0, ofGetWidth(), ofGetHeight());
         voronoi.setBounds(rect);
         voronoi.setPoints(gesturePoints);
         voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
-        int i = 0;
-        for(auto cell : voronoi.getCells()) {
-            auto cellPts = cell.points;
-            ofPolyline polyline;
-            polyline.addVertices(cellPts);
-            polyline.close();
-            
+        auto cells = voronoi.getCells();
+        for(int i = grid*grid; i < cells.size(); i++) {
+            auto polyline = makeCellPolyline(cells[i]);
             ofSetColor(float2randCol(i/10.));
             ofFill();
             drawClosedPolyline(polyline);
-            i++;
         }
+//        int i = 0;
+//        for(auto cell : voronoi.getCells()) {
+//            auto cellPts = cell.points;
+//            ofPolyline polyline;
+//            polyline.addVertices(cellPts);
+//            polyline.close();
+//
+//            ofSetColor(float2randCol(i/10.));
+//            ofNoFill();
+//            drawClosedPolyline(polyline);
+//            i++;
+//        }
     }
 }
 
