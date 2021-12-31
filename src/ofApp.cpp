@@ -30,6 +30,7 @@ void ofApp::setup(){
     });
     
     ofxSubscribeOsc(7072, "/useVoronoi", renderWithVoronoi);
+    ofxSubscribeOsc(7072, "/gridSize", gridSize);
 
 	// set other options:
 	//settings.blocking = false;
@@ -84,11 +85,10 @@ void ofApp::draw(){
 //    renderWithVoronoi = true;
     
     vector<glm::vec3> gesturePoints;
-    float grid = 10;
     
-    for(int i = 0; i < grid; i++) {
-        for(int j = 0; j < grid; j++) {
-            gesturePoints.push_back(glm::vec3((i+.5)/grid*ofGetWidth(), (j+.5)/grid*ofGetHeight(), 0));
+    for(int i = 0; i < gridSize; i++) {
+        for(int j = 0; j < gridSize; j++) {
+            gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
         }
     }
     
@@ -109,8 +109,12 @@ void ofApp::draw(){
         voronoi.setBounds(rect);
         voronoi.setPoints(gesturePoints);
         voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
+        int relaxIterations = 1;
+        while(relaxIterations--){
+            voronoi.relax();
+        }
         auto cells = voronoi.getCells();
-        for(int i = grid*grid; i < cells.size(); i++) {
+        for(int i = gridSize*gridSize; i < cells.size(); i++) {
             auto polyline = makeCellPolyline(cells[i]);
             ofSetColor(float2randCol(i/10.));
             ofFill();

@@ -48,6 +48,8 @@ class ofApp : public ofBaseApp{
     
         bool renderWithVoronoi;
         ofxVoronoi voronoi;
+    
+        int gridSize = 10;
         
 };
 
