@@ -85,10 +85,11 @@ void ofApp::draw(){
 //    renderWithVoronoi = true;
     
     vector<glm::vec3> gesturePoints;
-    
-    for(int i = 0; i < gridSize; i++) {
-        for(int j = 0; j < gridSize; j++) {
-            gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
+    if(renderWithVoronoi) {
+        for(int i = 0; i < gridSize; i++) {
+            for(int j = 0; j < gridSize; j++) {
+                gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
+            }
         }
     }
     
