@@ -24,16 +24,16 @@ typedef struct TimePoint TimePoint;
 
 class GestureRunner {
 public:
-    GestureRunner(vector<TimePoint> &jsonLoop, string loop_key) : loop(jsonLoop) {
-        loop = jsonLoop;
+    GestureRunner(const vector<TimePoint> &jsonLoop, string loop_key) : loop(jsonLoop) {
         ind = 0;
-        pos = glm::vec2(0, 0);
-        startTime = ofGetElapsedTimef();
-        duration = 2;
-        loopKey = loop_key;
-        lastAge = 0;
         origin = glm::vec2(loop[0].pos.x, loop[0].pos.y);
         pos = origin;
+        duration = 2;
+        loopKey = loop_key;
+        
+        //
+        startTime = ofGetElapsedTimef();
+        lastAge = 0;
         lastPos = origin;
     }
     
@@ -166,17 +166,22 @@ public:
         return ind == loop.size();
     }
     
-    vector<TimePoint>& loop;
+    //necessary in constructor
+    string loopKey;
+    const vector<TimePoint>& loop;
+    
+    //"private" - could use externally, but need to be careful
     int ind;
-    glm::vec2 pos;
     glm::vec2 lastPos;
     glm::vec2 origin;
+    double lastAge;
+    double startTime;
+    
+    //pulic - can play with initialization
+    glm::vec2 pos;
+    double duration;
     string group;
     string key;
-    string loopKey;
-    double startTime;
-    double duration;
-    double lastAge;
     bool deltaLoop = true;
     bool deltaAccumulate = true;
 };

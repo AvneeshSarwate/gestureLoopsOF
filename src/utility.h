@@ -105,4 +105,23 @@ void setResolutionUniform(ofShader shader) {
     shader.setUniform2f("resolution", ofGetWidth(), ofGetHeight());
 }
 
+GestureRunner gestureFromJson(const map<string, vector<TimePoint>> &loopBank, const json& gestureData) {
+    string loopKey = gestureData.at("loopKey");
+    auto g = GestureRunner(loopBank.at(loopKey), loopKey);
+    
+    auto isDefaultPos = [](const json &gd) { return gd.at("pos").is_string(); };
+    auto pos2vec = [](const json &gd){ return glm::vec2(gd.at("pos").at("x").get<float>(), gd.at("pos").at("y").get<float>()); };
+    if(!isDefaultPos(gestureData)) {
+        g.pos = pos2vec(gestureData);
+    }
+    
+    g.duration = gestureData.at("duration");
+    g.group = gestureData.at("group");
+    g.key = gestureData.at("key");
+    g.deltaLoop = gestureData.at("deltaLoop");
+    g.deltaAccumulate = gestureData.at("deltaAccumulate");
+    
+    return g;
+}
+
 #endif /* timePoint_h */

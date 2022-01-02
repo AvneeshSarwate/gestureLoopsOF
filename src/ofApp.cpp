@@ -25,6 +25,14 @@ void ofApp::setup(){
         gestures.push_back(g);
     });
     
+    ofxSubscribeOsc(7072, "/launchConfig", [&](std::string &launchConfigStr) {
+        auto config = json::parse(launchConfigStr);
+        for(auto &conf : config) {
+            auto g = gestureFromJson(stdLoops, conf);
+            gestures.push_back(g);
+        }
+    });
+    
     ofxSubscribeOsc(7072, "/clearAll", [&](){
         gestures.clear();
     });
