@@ -89,7 +89,10 @@ void ofApp::update(){
 
 	}
     
-    
+    //using this because std::erase_if not yet supported by C++ version in compiler/project setup 
+    auto it = std::remove_if(gestures.begin(), gestures.end(), [](GestureRunner g) { return !g.looping && g.isDone(); });
+    auto r = std::distance(it, gestures.end());
+    gestures.erase(it, gestures.end());
 }
 
 //--------------------------------------------------------------

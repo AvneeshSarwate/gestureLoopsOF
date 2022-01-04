@@ -38,6 +38,10 @@ public:
         lastPos = origin;
     }
     
+    GestureRunner& operator=(GestureRunner other){
+        return *this;
+    }
+    
     void naiveStep() {
         // if(ind < loop.size()) {
         //     auto posJson = loop[ind]["pos"];

@@ -118,6 +118,7 @@ GestureRunner gestureFromJson(const map<string, vector<TimePoint>> &loopBank, co
     g.duration = gestureData.at("duration");
     g.group = gestureData.at("group");
     g.key = gestureData.at("key");
+    g.looping = gestureData.at("looping");
     g.deltaLoop = gestureData.at("deltaLoop");
     g.deltaAccumulate = gestureData.at("deltaAccumulate");
     g.rotation = gestureData.at("rotation");
