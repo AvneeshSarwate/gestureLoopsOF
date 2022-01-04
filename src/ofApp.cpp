@@ -11,10 +11,6 @@ using json = nlohmann::json;
 void ofApp::setup(){
 	ofSetBackgroundColor(230);
 
-	// our send and recieve strings
-	msgTx	= "";
-	msgRx	= "";
-
 	ofxTCPSettings settings("127.0.0.1", 11999);
     
     ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, float duration, bool loop, std::string &group, std::string &key){
@@ -64,8 +60,7 @@ void ofApp::update(){
 		// we are connected - lets try to receive from the server
 		string str = tcpClient.receive();
 		if( str.length() > 0 ){
-			msgRx = str;
-            jsonLoops = json::parse(msgRx);
+            jsonLoops = json::parse(str);
             auto newLoops = restructureJson(jsonLoops);
             for ( const auto &loopData : newLoops ) {
                 stdLoops[loopData.first] = loopData.second;
@@ -75,7 +70,6 @@ void ofApp::update(){
             cout << "got loops" << endl;
 		}
 	}else{
-		msgTx = "";
 		// if we are not connected lets try and reconnect every 5 seconds
 		deltaTime = ofGetElapsedTimeMillis() - connectTime;
 

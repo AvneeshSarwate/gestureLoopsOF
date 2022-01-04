@@ -29,18 +29,11 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);		
 		
 		ofxTCPClient tcpClient;
-		string msgTx, msgRx;
-
-		ofTrueTypeFont  mono;
-		ofTrueTypeFont  monosm;
 
 		float counter;
 		int connectTime;
 		int deltaTime;
-
-        int size;
     
-        GestureRunner *gest;
         vector<GestureRunner> gestures;
     
         json jsonLoops;

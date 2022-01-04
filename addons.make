@@ -2,4 +2,12 @@ ofxAutoReloadedShader
 ofxNetwork
 ofxOsc
 ofxPubSubOsc
+ofxXmlSettings
+ofxTween
+ofxRange
+ofxMSATimer
+ofxTimecode
+ofxTextInputField
+ofxPoco
+ofxTimeline_10_1_m1_new
 ofxVoronoi

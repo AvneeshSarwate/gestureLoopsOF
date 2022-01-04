@@ -7,8 +7,12 @@
 
 #include "libs/json.hpp"
 #include "ofMain.h"
+#include <glm/gtx/rotate_vector.hpp>
 
 using json = nlohmann::json;
+
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
 
 #ifndef GestureRunner_h
 #define GestureRunner_h
@@ -25,15 +29,12 @@ typedef struct TimePoint TimePoint;
 class GestureRunner {
 public:
     GestureRunner(const vector<TimePoint> &jsonLoop, string loop_key) : loop(jsonLoop) {
-        ind = 0;
         origin = glm::vec2(loop[0].pos.x, loop[0].pos.y);
         pos = origin;
-        duration = 2;
         loopKey = loop_key;
         
         //
         startTime = ofGetElapsedTimef();
-        lastAge = 0;
         lastPos = origin;
     }
     
@@ -63,9 +64,10 @@ public:
     void deltaStep() {
         auto normalDelta = [&] {
             auto delta = getDelta();
-            pos += delta;
+            pos += glm::rotate(delta, rotation);
             pos = glm::vec2(modulo(pos.x, 1), modulo(pos.y, 1));
         };
+        
         if(deltaAccumulate) {
             normalDelta();
         } else {
@@ -74,7 +76,7 @@ public:
             double phase = std::fmod(age, duration) / duration;
             if(phase < lastPhase) {
                 auto delta = getPos(phase) - getPos(0);
-                pos = origin + delta;
+                pos = origin + glm::rotate(delta, rotation);
             } else {
                 normalDelta();
             }
@@ -171,20 +173,22 @@ public:
     const vector<TimePoint>& loop;
     
     //"private" - could use externally, but need to be careful
-    int ind;
+    int ind = 0;
     glm::vec2 lastPos;
     glm::vec2 origin;
-    double lastAge;
+    double lastAge = 0;
     double startTime;
     
     //pulic - can play with initialization
     glm::vec2 pos;
-    double duration;
+    double duration = 5;
     string group;
     string key;
     bool looping = true;
     bool deltaLoop = true;
     bool deltaAccumulate = true;
+    float rotation = 0;
 };
 
 #endif /* GestureRunner_h */
+#endif //GLM_ENABLE_EXPERIMENTAL
