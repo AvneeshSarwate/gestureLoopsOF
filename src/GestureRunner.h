@@ -163,7 +163,7 @@ public:
     }
     
     bool isDone() {
-        return ind == loop.size();
+        return lastAge > duration;
     }
     
     //necessary in constructor
@@ -182,6 +182,7 @@ public:
     double duration;
     string group;
     string key;
+    bool looping = true;
     bool deltaLoop = true;
     bool deltaAccumulate = true;
 };

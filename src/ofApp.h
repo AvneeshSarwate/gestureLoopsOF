@@ -50,6 +50,9 @@ class ofApp : public ofBaseApp{
         ofxVoronoi voronoi;
     
         int gridSize = 10;
+    
+        bool penTouching;
+        glm::vec2 touchPos;
         
 };
 

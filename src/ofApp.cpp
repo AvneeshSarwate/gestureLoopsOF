@@ -39,6 +39,8 @@ void ofApp::setup(){
     
     ofxSubscribeOsc(7072, "/useVoronoi", renderWithVoronoi);
     ofxSubscribeOsc(7072, "/gridSize", gridSize);
+    ofxSubscribeOsc(7072, "/touching", penTouching);
+    ofxSubscribeOsc(7072, "/touchPos", touchPos);
 
 	// set other options:
 	//settings.blocking = false;
@@ -141,6 +143,11 @@ void ofApp::draw(){
 //            drawClosedPolyline(polyline);
 //            i++;
 //        }
+    }
+    
+    if (penTouching) {
+        ofSetColor(255, 0, 0);
+        ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
     }
 }
 
