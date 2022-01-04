@@ -60,14 +60,22 @@ void ofApp::update(){
 		// we are connected - lets try to receive from the server
 		string str = tcpClient.receive();
 		if( str.length() > 0 ){
-            jsonLoops = json::parse(str);
-            auto newLoops = restructureJson(jsonLoops);
-            for ( const auto &loopData : newLoops ) {
-                stdLoops[loopData.first] = loopData.second;
+            auto jsonData = json::parse(str);
+            if(jsonData.at("type") == "processedLoops") {
+                auto newLoops = restructureJson(jsonData.at("data"));
+                for ( const auto &loopData : newLoops ) {
+                    stdLoops[loopData.first] = loopData.second;
+                }
+                cout << "got loops" << endl;
             }
-            
-//            gest = new GestureRunner(loops, "firstLoop");
-            cout << "got loops" << endl;
+            if(jsonData.at("type") == "launchConfig") {
+                auto config = jsonData.at("data");
+                for(auto &conf : config) {
+                    auto g = gestureFromJson(stdLoops, conf);
+                    gestures.push_back(g);
+                }
+                cout << "got config" << endl;
+            }
 		}
 	}else{
 		// if we are not connected lets try and reconnect every 5 seconds
@@ -80,6 +88,8 @@ void ofApp::update(){
 		}
 
 	}
+    
+    
 }
 
 //--------------------------------------------------------------
