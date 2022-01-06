@@ -53,8 +53,8 @@ public:
         // }
     }
     
-    void absoluteStep() {
-        double age = ofGetElapsedTimef() - startTime;
+    void absoluteStep(double wallClockDelta) {
+        double age = lastAge + wallClockDelta;
         double phase = std::fmod(age, duration) / duration;
         pos = getPos(phase);
     }
@@ -65,9 +65,9 @@ public:
         return r < 0 ? r + b : r;
     }
     
-    void deltaStep() {
+    void deltaStep(double wallClockDelta) {
         auto normalDelta = [&] {
-            auto delta = getDelta();
+            auto delta = getDelta(wallClockDelta);
             pos += glm::rotate(delta, rotation);
             pos = glm::vec2(modulo(pos.x, 1), modulo(pos.y, 1));
         };
@@ -75,7 +75,7 @@ public:
         if(deltaAccumulate) {
             normalDelta();
         } else {
-            double age = ofGetElapsedTimef() - startTime;
+            double age = lastAge + wallClockDelta;
             double lastPhase = std::fmod(lastAge, duration) / duration;
             double phase = std::fmod(age, duration) / duration;
             if(phase < lastPhase) {
@@ -87,16 +87,16 @@ public:
         }
     }
     
-    void step() {
+    void step(double wallClockDelta) {
         lastPos = pos;
-        if(deltaLoop) deltaStep();
-        else absoluteStep();
-        lastAge = ofGetElapsedTimef() - startTime;
+        if(deltaLoop) deltaStep(wallClockDelta);
+        else absoluteStep(wallClockDelta);
+        lastAge += wallClockDelta;
     }
     
     //todo - this only works if the delta time is less than the duration of the loop
-    glm::vec2 getDelta() {
-        double age = ofGetElapsedTimef() - startTime;
+    glm::vec2 getDelta(double wallClockDelta) {
+        double age = lastAge + wallClockDelta;
         double lastPhase = std::fmod(lastAge, duration) / duration;
         double phase = std::fmod(age, duration) / duration;
         

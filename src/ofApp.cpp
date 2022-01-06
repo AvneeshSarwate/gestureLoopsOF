@@ -108,7 +108,7 @@ void ofApp::update(){
 }
 
 void ofApp::drawToFbo() {
-    
+    double drawTime = ofGetElapsedTimef();
     targetFbo.begin(); {
         ofClear(0, 0, 0, 0);
         
@@ -123,7 +123,7 @@ void ofApp::drawToFbo() {
         
         for(auto &g : gestures) {
             ofSetColor(255);
-            g.step();
+            g.step(drawTime-lastDrawTime);
             glm::vec3 pos = glm::vec3(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 0);
             
             if(!renderWithVoronoi) ofDrawCircle(pos.x, pos.y, 10);
@@ -154,6 +154,7 @@ void ofApp::drawToFbo() {
             ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
         }
     }; targetFbo.end();
+    lastDrawTime = drawTime;
 }
 
 //--------------------------------------------------------------

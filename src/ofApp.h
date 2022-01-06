@@ -42,6 +42,8 @@ class ofApp : public ofBaseApp{
         bool penTouching;
         glm::vec2 touchPos;
     
+        double lastDrawTime;
+    
         // sketch specific vars below here =============================
         bool renderWithVoronoi;
         ofxVoronoi voronoi;
