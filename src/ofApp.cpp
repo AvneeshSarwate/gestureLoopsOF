@@ -9,11 +9,12 @@ using json = nlohmann::json;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofSetBackgroundColor(230);
 
+    // generic setup stuff ====================================================
+    {
 	ofxTCPSettings settings("127.0.0.1", 11999);
     
-    ofxSubscribeOsc(7072, "/launch", [&](std::string &loopName, float duration, bool loop, std::string &group, std::string &key){
+    ofxSubscribeOsc(7072, "/"+sketchId+"/launch", [&](std::string &loopName, float duration, bool loop, std::string &group, std::string &key){
         auto g = GestureRunner(stdLoops[loopName], loopName);
         g.duration = duration;
         g.group = group;
@@ -21,20 +22,11 @@ void ofApp::setup(){
         gestures.push_back(g);
     });
     
-    ofxSubscribeOsc(7072, "/launchConfig", [&](std::string &launchConfigStr) {
-        auto config = json::parse(launchConfigStr);
-        for(auto &conf : config) {
-            auto g = gestureFromJson(stdLoops, conf);
-            gestures.push_back(g);
-        }
-    });
-    
-    ofxSubscribeOsc(7072, "/clearAll", [&](){
+    ofxSubscribeOsc(7072, "/"+sketchId+"/clearAll", [&](){
         gestures.clear();
     });
     
-    ofxSubscribeOsc(7072, "/useVoronoi", renderWithVoronoi);
-    ofxSubscribeOsc(7072, "/gridSize", gridSize);
+    //todo - figure out whether this is sketch specific or general
     ofxSubscribeOsc(7072, "/touching", penTouching);
     ofxSubscribeOsc(7072, "/touchPos", touchPos);
 
@@ -49,26 +41,42 @@ void ofApp::setup(){
 	// optionally set the delimiter to something else.  The delimiter in the client and the server have to be the same
 	tcpClient.setMessageDelimiter("\n");
 
-	connectTime = 0;
-	deltaTime = 0;
+	tcpConnectTime = 0;
+	tcpConnectRetryDelta = 0;
+    
+    initializeFBO(targetFbo);
+    }
+    
+    
+    // sketch specific stuff below here ====================================================
+    ofxSubscribeOsc(7072, "/"+sketchId+"/useVoronoi", renderWithVoronoi);
+    ofxSubscribeOsc(7072, "/"+sketchId+"/gridSize", gridSize);
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    int numLoops = jsonLoops.size();
+    // generic setup stuff ====================================================
+    {
 	if(tcpClient.isConnected()){
 		// we are connected - lets try to receive from the server
 		string str = tcpClient.receive();
 		if( str.length() > 0 ){
             auto jsonData = json::parse(str);
-            if(jsonData.at("type") == "processedLoops") {
+            string jsonSkechVal = jsonData.at("sketchId");
+            bool forThisSketch = jsonSkechVal == sketchId;
+            
+            //todo: when combining sketches, remove this from sub-sketch update() functions
+            bool forRunner = jsonSkechVal == "runner";
+            if(jsonData.at("type") == "processedLoops" && (forThisSketch || forRunner)) {
                 auto newLoops = restructureJson(jsonData.at("data"));
                 for ( const auto &loopData : newLoops ) {
                     stdLoops[loopData.first] = loopData.second;
                 }
                 cout << "got loops" << endl;
             }
-            if(jsonData.at("type") == "launchConfig") {
+            
+            if(jsonData.at("type") == "launchConfig" && forThisSketch) {
                 auto config = jsonData.at("data");
                 for(auto &conf : config) {
                     auto g = gestureFromJson(stdLoops, conf);
@@ -79,83 +87,80 @@ void ofApp::update(){
 		}
 	}else{
 		// if we are not connected lets try and reconnect every 5 seconds
-		deltaTime = ofGetElapsedTimeMillis() - connectTime;
+		tcpConnectRetryDelta = ofGetElapsedTimeMillis() - tcpConnectTime;
 
-		if( deltaTime > 5000 ){
+		if( tcpConnectRetryDelta > 5000 ){
 			tcpClient.setup("127.0.0.1", 11999);
 			tcpClient.setMessageDelimiter("\n");
-			connectTime = ofGetElapsedTimeMillis();
+			tcpConnectTime = ofGetElapsedTimeMillis();
 		}
-
 	}
     
-    //using this because std::erase_if not yet supported by C++ version in compiler/project setup 
+    // todo using this because std::erase_if not yet supported by C++ version in compiler/project setup
     auto it = std::remove_if(gestures.begin(), gestures.end(), [](GestureRunner g) { return !g.looping && g.isDone(); });
     auto r = std::distance(it, gestures.end());
     gestures.erase(it, gestures.end());
+        
+    }
+    
+    
+    // sketch specific stuff below here ====================================================
+}
+
+void ofApp::drawToFbo() {
+    
+    targetFbo.begin(); {
+        ofClear(0, 0, 0, 0);
+        
+        vector<glm::vec3> gesturePoints;
+        if(renderWithVoronoi) {
+            for(int i = 0; i < gridSize; i++) {
+                for(int j = 0; j < gridSize; j++) {
+                    gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
+                }
+            }
+        }
+        
+        for(auto &g : gestures) {
+            ofSetColor(255);
+            g.step();
+            glm::vec3 pos = glm::vec3(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 0);
+            
+            if(!renderWithVoronoi) ofDrawCircle(pos.x, pos.y, 10);
+            
+            gesturePoints.push_back(pos);
+        }
+        
+        if(renderWithVoronoi) {
+            auto rect = ofRectangle(0, 0, ofGetWidth(), ofGetHeight());
+            voronoi.setBounds(rect);
+            voronoi.setPoints(gesturePoints);
+            voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
+            int relaxIterations = 1;
+            while(relaxIterations--){
+                voronoi.relax();
+            }
+            auto cells = voronoi.getCells();
+            for(int i = gridSize*gridSize; i < cells.size(); i++) {
+                auto polyline = makeCellPolyline(cells[i]);
+                ofSetColor(float2randCol(i/10.));
+                ofFill();
+                drawClosedPolyline(polyline);
+            }
+        }
+        
+        if (penTouching) {
+            ofSetColor(255, 0, 0);
+            ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
+        }
+    }; targetFbo.end();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofClear(0, 0, 0, 0);
-    
-//    renderWithVoronoi = true;
-    
-    vector<glm::vec3> gesturePoints;
-    if(renderWithVoronoi) {
-        for(int i = 0; i < gridSize; i++) {
-            for(int j = 0; j < gridSize; j++) {
-                gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
-            }
-        }
-    }
-    
-    for(auto &g : gestures) {
-        ofSetColor(255);
-        g.step();
-        glm::vec3 pos = glm::vec3(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 0);
-        
-        if(!renderWithVoronoi) ofDrawCircle(pos.x, pos.y, 10);
-        
-        gesturePoints.push_back(pos);
-//        ofSetColor(255, 0, 0);
-//        ofDrawBitmapString(std::to_string(i), pos.x, pos.y);
-    }
-    
-    if(renderWithVoronoi) {
-        auto rect = ofRectangle(0, 0, ofGetWidth(), ofGetHeight());
-        voronoi.setBounds(rect);
-        voronoi.setPoints(gesturePoints);
-        voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
-        int relaxIterations = 1;
-        while(relaxIterations--){
-            voronoi.relax();
-        }
-        auto cells = voronoi.getCells();
-        for(int i = gridSize*gridSize; i < cells.size(); i++) {
-            auto polyline = makeCellPolyline(cells[i]);
-            ofSetColor(float2randCol(i/10.));
-            ofFill();
-            drawClosedPolyline(polyline);
-        }
-//        int i = 0;
-//        for(auto cell : voronoi.getCells()) {
-//            auto cellPts = cell.points;
-//            ofPolyline polyline;
-//            polyline.addVertices(cellPts);
-//            polyline.close();
-//
-//            ofSetColor(float2randCol(i/10.));
-//            ofNoFill();
-//            drawClosedPolyline(polyline);
-//            i++;
-//        }
-    }
-    
-    if (penTouching) {
-        ofSetColor(255, 0, 0);
-        ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
-    }
+    drawToFbo();
+    targetFbo.draw(0, 0, ofGetWidth(), ofGetHeight());
 }
 
 

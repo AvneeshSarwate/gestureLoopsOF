@@ -126,4 +126,17 @@ GestureRunner gestureFromJson(const map<string, vector<TimePoint>> &loopBank, co
     return g;
 }
 
+void initializeFBO(ofFbo &fbo) {
+    ofFboSettings settings;
+    settings.width = ofGetWidth();
+    settings.height = ofGetHeight();
+    settings.internalformat = GL_RGBA;
+    settings.useDepth = true;
+    settings.useStencil = true;
+    settings.depthStencilAsTexture = true;
+    
+    fbo.allocate(settings);
+    fbo.activateAllDrawBuffers();
+}
+
 #endif /* timePoint_h */

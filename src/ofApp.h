@@ -11,10 +11,14 @@ using json = nlohmann::json;
 class ofApp : public ofBaseApp{
 
 	public:
+        string sketchId = "sketch0";
 
 		void setup();
 		void update();
 		void draw();
+    
+        void drawToFbo();
+        ofFbo targetFbo;
 		
 		void keyPressed(ofKeyEventArgs & key);
 		void keyReleased(int key);
@@ -29,23 +33,19 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);		
 		
 		ofxTCPClient tcpClient;
-
-		float counter;
-		int connectTime;
-		int deltaTime;
+		int tcpConnectTime;
+		int tcpConnectRetryDelta;
     
         vector<GestureRunner> gestures;
-    
-        json jsonLoops;
         map<string, vector<TimePoint>> stdLoops;
-    
-        bool renderWithVoronoi;
-        ofxVoronoi voronoi;
-    
-        int gridSize = 10;
     
         bool penTouching;
         glm::vec2 touchPos;
+    
+        // sketch specific vars below here =============================
+        bool renderWithVoronoi;
+        ofxVoronoi voronoi;
+        int gridSize = 10;
         
 };
 
