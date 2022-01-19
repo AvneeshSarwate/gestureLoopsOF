@@ -5,6 +5,7 @@
 #include "ofxVoronoi.h"
 #include "libs/json.hpp"
 #include "GestureRunner.h"
+#include "ofxAutoReloadedShader.h"
 
 using json = nlohmann::json;
 
@@ -45,9 +46,12 @@ class ofApp_1 : public ofBaseApp{
         double lastDrawTime;
     
         // sketch specific vars below here =============================
-        bool renderWithVoronoi;
-        ofxVoronoi voronoi;
-        int gridSize = 10;
+        vector<ofFbo*> pingpong;
+        ofFbo brush;
+        int pingpong_ind = 0;
+        ofxAutoReloadedShader shader;
+        ofPlanePrimitive plane;
+        
         
 };
 

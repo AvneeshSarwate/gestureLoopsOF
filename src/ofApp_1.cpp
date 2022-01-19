@@ -47,11 +47,21 @@ void ofApp_1::setup(){
     initializeFBO(targetFbo);
     }
     
+    // sketch specific vars below here =============================
+    auto fbo1 = new ofFbo();
+    auto fbo2 = new ofFbo();
+//    initializeFBO(fbo1);
+//    initializeFBO(fbo2);
+    pingpong.push_back(fbo1);
+    pingpong.push_back(fbo2);
+    initializeFBO(*pingpong[0]);
+    initializeFBO(*pingpong[1]);
+    initializeFBO(brush);
     
-    // sketch specific stuff below here ====================================================
-    ofxSubscribeOsc(7072, "/"+sketchId+"/useVoronoi", renderWithVoronoi);
-    ofxSubscribeOsc(7072, "/"+sketchId+"/gridSize", gridSize);
+    shader.load("sketch1/feedback");
     
+    plane.set(ofGetWidth(), ofGetHeight());
+    plane.setPosition(0+ofGetWidth()/2., 0+ofGetHeight()/2., 0);
 }
 
 //--------------------------------------------------------------
@@ -109,45 +119,40 @@ void ofApp_1::update(){
 
 void ofApp_1::drawToFbo() {
     double drawTime = ofGetElapsedTimef();
-    targetFbo.begin(); {
+    
+    auto src = pingpong[pingpong_ind%2];
+    auto dest = pingpong[(pingpong_ind+1)%2];
+    pingpong_ind++;
+    
+    brush.begin(); {
         ofClear(0, 0, 0, 0);
-        
-        vector<glm::vec3> gesturePoints;
-        if(renderWithVoronoi) {
-            for(int i = 0; i < gridSize; i++) {
-                for(int j = 0; j < gridSize; j++) {
-                    gesturePoints.push_back(glm::vec3((i+.5)/gridSize*ofGetWidth(), (j+.5)/gridSize*ofGetHeight(), 0));
-                }
-            }
-        }
-        
         for(auto &g : gestures) {
             ofSetColor(255);
             g.step(drawTime-lastDrawTime);
             glm::vec3 pos = glm::vec3(g.pos.x*ofGetWidth(), g.pos.y*ofGetHeight(), 0);
             
-            if(!renderWithVoronoi) ofDrawCircle(pos.x, pos.y, 10);
+            ofDrawCircle(pos.x, pos.y, 10);
+        }
+    } brush.end();
+    
+    dest->begin(); {
+        ofClear(0, 0, 0, 0);
+        shader.begin(); {
+            setResolutionUniform(shader);
+            shader.setUniform1f("time", ofGetElapsedTimef());
+            shader.setUniformTexture("brush", brush.getTexture(), 0);
+            shader.setUniformTexture("backbuffer", src->getTexture(), 1);
+            auto bbox_plane = getPlaneBbox(plane);
+            setBBoxUniform(bbox_plane, shader);
             
-            gesturePoints.push_back(pos);
-        }
+            plane.draw();
+        } shader.end();
+    } dest->end();
+    
+    targetFbo.begin(); {
+        ofClear(0, 0, 0, 0);
         
-        if(renderWithVoronoi) {
-            auto rect = ofRectangle(0, 0, ofGetWidth(), ofGetHeight());
-            voronoi.setBounds(rect);
-            voronoi.setPoints(gesturePoints);
-            voronoi.generate(true); //cells in order of points - needed to only draw gestures instead of grid
-            int relaxIterations = 1;
-            while(relaxIterations--){
-                voronoi.relax();
-            }
-            auto cells = voronoi.getCells();
-            for(int i = gridSize*gridSize; i < cells.size(); i++) {
-                auto polyline = makeCellPolyline(cells[i]);
-                ofSetColor(float2randCol(i/10.));
-                ofFill();
-                drawClosedPolyline(polyline);
-            }
-        }
+        dest->draw(0, 0, ofGetWidth(), ofGetHeight());
         
         if (penTouching) {
             ofSetColor(255, 0, 0);
