@@ -42,4 +42,15 @@ GestureRunner gestureFromJson(const map<string, vector<TimePoint>> &loopBank, co
 
 void initializeFBO(ofFbo &fbo);
 
+class CircularPixelBuffer{
+public:
+    CircularPixelBuffer();
+    void setup(int numFrames);
+    void pushPixels(ofFbo& pix);
+    ofTexture& getDelayedPixels(size_t delay);
+protected:
+    int currentIndex;
+    vector<ofFbo*> frames;
+};
+
 #endif /* utility_h */

@@ -8,6 +8,7 @@
 #include "libs/json.hpp"
 #include "ofxVoronoi.h"
 #include "GestureRunner.h"
+#include "utility.h"
 
 
 using json = nlohmann::json;
@@ -139,3 +140,30 @@ void initializeFBO(ofFbo &fbo) {
     fbo.activateAllDrawBuffers();
 }
 
+CircularPixelBuffer::CircularPixelBuffer(){
+    currentIndex = 0;
+}
+void CircularPixelBuffer::setup(int numFrames){
+    frames.resize(numFrames);
+    for(int i = 0; i < numFrames; i++) {
+        frames[i] = new ofFbo();
+        initializeFBO(*frames[i]);
+    }
+    currentIndex = numFrames -1;
+}
+void CircularPixelBuffer::pushPixels(ofFbo& pix){
+    currentIndex--;
+    if (currentIndex < 0) {
+        currentIndex = frames.size() -1;
+    }
+//    frames[currentIndex] = pix;
+    frames[currentIndex]->begin(); {
+        pix.getTexture().draw(0, 0); //assuming texture height/width is full app height/width everywhere
+    } frames[currentIndex]->end();
+}
+
+ofTexture& CircularPixelBuffer::getDelayedPixels(size_t delay){
+    int outInd = ofWrap(delay + currentIndex, 0, frames.size());
+    return frames[outInd]->getTexture();
+}
+    

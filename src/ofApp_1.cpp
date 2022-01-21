@@ -45,6 +45,8 @@ void ofApp_1::setup(){
 	tcpConnectRetryDelta = 0;
     
     initializeFBO(targetFbo);
+        
+    ofDisableAlphaBlending();
     }
     
     // sketch specific vars below here =============================
@@ -62,6 +64,11 @@ void ofApp_1::setup(){
     
     plane.set(ofGetWidth(), ofGetHeight());
     plane.setPosition(0+ofGetWidth()/2., 0+ofGetHeight()/2., 0);
+    
+    ofxSubscribeOsc(7072, "/"+sketchId+"/schemeInd", schemeInd);
+    ofxSubscribeOsc(7072, "/"+sketchId+"/delayTime", delayTime);
+    
+    circPix.setup(120);
 }
 
 //--------------------------------------------------------------
@@ -135,19 +142,25 @@ void ofApp_1::drawToFbo() {
         }
     } brush.end();
     
+    auto delayedFrame = circPix.getDelayedPixels(delayTime);
+    
     dest->begin(); {
         ofClear(0, 0, 0, 0);
         shader.begin(); {
             setResolutionUniform(shader);
+            shader.setUniform1i("schemeInd", schemeInd);
             shader.setUniform1f("time", ofGetElapsedTimef());
             shader.setUniformTexture("brush", brush.getTexture(), 0);
             shader.setUniformTexture("backbuffer", src->getTexture(), 1);
+            shader.setUniformTexture("delayedFrame", delayedFrame, 2);
             auto bbox_plane = getPlaneBbox(plane);
             setBBoxUniform(bbox_plane, shader);
             
             plane.draw();
         } shader.end();
     } dest->end();
+    
+    circPix.pushPixels(*dest);
     
     targetFbo.begin(); {
         ofClear(0, 0, 0, 0);

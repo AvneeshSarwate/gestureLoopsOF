@@ -6,6 +6,7 @@
 #include "libs/json.hpp"
 #include "GestureRunner.h"
 #include "ofxAutoReloadedShader.h"
+#include "utility.h"
 
 using json = nlohmann::json;
 
@@ -51,7 +52,8 @@ class ofApp_1 : public ofBaseApp{
         int pingpong_ind = 0;
         ofxAutoReloadedShader shader;
         ofPlanePrimitive plane;
-        
-        
+        int schemeInd;
+        CircularPixelBuffer circPix;
+        int delayTime = 60;
 };
 
