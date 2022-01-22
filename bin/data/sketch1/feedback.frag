@@ -13,6 +13,7 @@ in vec2 uv;
 
 float sinN(float t) { return (sin(t)+1)/2;}
 float rand(const in float n){return fract(sin(n) * 1e4);}
+float rand2(float f) {vec2 n = vec2(f); return (fract(1e4 * sin(17.0 * n.x + n.y * 0.1) * (0.1 + abs(sin(n.y * 13.0 + n.x))))-0.5)*0.002;}
 // quantize and input number [0, 1] to quantLevels levels
 float quant(float num, float quantLevels){
     float roundPart = floor(fract(num*quantLevels)*2.);
@@ -24,6 +25,19 @@ vec2 quant(vec2 num, float quantLevels){
 vec2 rotate(vec2 space, vec2 center, float amount){
     return vec2(cos(amount) * (space.x - center.x) + sin(amount) * (space.y - center.y) + center.x,
         cos(amount) * (space.y - center.y) - sin(amount) * (space.x - center.x) + center.y);
+}
+
+vec4 avgSample(sampler2DRect tex, vec2 nn, float dist){
+    vec4 c1 = texture(tex, rotate(nn+vec2(0, dist), nn, rand(1.))      +rand2(1.)).rgba;
+    vec4 c2 = texture(tex, rotate(nn+vec2(0, -dist), nn, rand(2.))     +rand2(2.)).rgba;
+    vec4 c3 = texture(tex, rotate(nn+vec2(dist, 0), nn, rand(3.))      +rand2(3.)).rgba;
+    vec4 c4 = texture(tex, rotate(nn+vec2(-dist, 0), nn, rand(4.))     +rand2(4.)).rgba;
+    vec4 c5 = texture(tex, rotate(nn+vec2(dist, dist), nn, rand(5.))   +rand2(5.)).rgba;
+    vec4 c6 = texture(tex, rotate(nn+vec2(-dist, -dist), nn, rand(6.)) +rand2(6.)).rgba;
+    vec4 c7 = texture(tex, rotate(nn+vec2(dist, -dist), nn, rand(7.))  +rand2(7.)).rgba;
+    vec4 c8 = texture(tex, rotate(nn+vec2(-dist, dist), nn, rand(8.))  +rand2(8.)).rgba;
+    
+    return (c1+c2+c3+c4+c5+c6+c7+c8)/8.;
 }
 
 void scheme1() {
@@ -42,9 +56,25 @@ void scheme2() {
     if(uv.y < 0.001) outputColor = vec4(0, 0, 0, 0);
 }
 
+void scheme3() {
+    vec4 col = texture(brush, uv*resolution);
+    vec4 bb = texture(backbuffer, uv*resolution);
+    vec4 bbAvg = avgSample(backbuffer, uv*resolution, 1);
+    vec4 delay1 = texture(delayedFrame, rotate(uv, vec2(0.5), 0.07) *resolution);
+    vec4 delay2 = texture(delayedFrame, (uv+vec2(0, 0.1*sin(quant(time/3., 2)*3.))) *resolution);
+    
+    vec4 delay = delay2;
+    vec4 warp = ((col/delay) - delay*pow(1-sinN(time), 50));
+    
+    outputColor = mix(warp, bbAvg, 0.5);
+}
+
+
+
 void main()
 {
     if(schemeInd == 0) outputColor = vec4(1, 0, 0, 1);;
     if(schemeInd == 1) scheme1();
     if(schemeInd == 2) scheme2();
+    if(schemeInd == 3) scheme3();
 }

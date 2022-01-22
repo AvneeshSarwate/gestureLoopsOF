@@ -3,9 +3,10 @@
 #include "ofMain.h"
 #include "ofxNetwork.h"
 #include "ofxVoronoi.h"
+#include "ofxAutoReloadedShader.h"
+#include "ofxHapPlayer.h"
 #include "libs/json.hpp"
 #include "GestureRunner.h"
-#include "ofxAutoReloadedShader.h"
 #include "utility.h"
 
 using json = nlohmann::json;
@@ -55,5 +56,12 @@ class ofApp_1 : public ofBaseApp{
         int schemeInd;
         CircularPixelBuffer circPix;
         int delayTime = 60;
+    
+        ofxHapPlayer player;
+        ofRectangle getBarRectangle() const;
+        uint64_t lastMovement;
+        bool wasPaused;
+        bool drawBar;
+        bool inScrub;
 };
 

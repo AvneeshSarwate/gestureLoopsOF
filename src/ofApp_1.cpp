@@ -4,6 +4,8 @@
 #include "utility.h"
 
 #define RECONNECT_TIME 400
+#define BarInset 20
+#define BarHeight 40
 
 using json = nlohmann::json;
 
@@ -69,6 +71,9 @@ void ofApp_1::setup(){
     ofxSubscribeOsc(7072, "/"+sketchId+"/delayTime", delayTime);
     
     circPix.setup(120);
+    
+    player.setLoopState(OF_LOOP_NORMAL);
+    player.load("movies/gore.mov");
 }
 
 //--------------------------------------------------------------
@@ -122,6 +127,24 @@ void ofApp_1::update(){
     
     
     // sketch specific stuff below here ====================================================
+    // Show or hide the cursor and position bar
+    if (ofGetSystemTimeMillis() - lastMovement < 3000)
+    {
+        drawBar = true;
+    }
+    else
+    {
+        drawBar = false;
+    }
+    ofRectangle window = ofGetWindowRect();
+    if (!drawBar && window.inside(ofGetMouseX(), ofGetMouseY()))
+    {
+        ofHideCursor();
+    }
+    else
+    {
+        ofShowCursor();
+    }
 }
 
 void ofApp_1::drawToFbo() {
@@ -140,6 +163,7 @@ void ofApp_1::drawToFbo() {
             
             ofDrawCircle(pos.x, pos.y, 10);
         }
+        if(player.isLoaded()) player.draw(0, 0, ofGetWidth(), ofGetHeight());
     } brush.end();
     
     auto delayedFrame = circPix.getDelayedPixels(delayTime);
@@ -171,6 +195,20 @@ void ofApp_1::drawToFbo() {
             ofSetColor(255, 0, 0);
             ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
         }
+        
+        // Draw the position bar if appropriate
+        if (drawBar)
+        {
+            ofNoFill();
+            ofRectangle bar = getBarRectangle();
+            ofSetColor(244, 66, 234);
+            ofDrawRectangle(bar);
+            ofFill();
+            ofSetColor(244, 66, 234, 180);
+            bar.width *= player.getPosition();
+            ofDrawRectangle(bar);
+        }
+        
     }; targetFbo.end();
     lastDrawTime = drawTime;
 }
@@ -185,6 +223,18 @@ void ofApp_1::draw(){
 
 //--------------------------------------------------------------
 void ofApp_1::keyPressed(ofKeyEventArgs & key){
+    if (key.key == ' ')
+   {
+       player.setPaused(!player.isPaused());
+   }
+   else if (key.key == OF_KEY_UP)
+   {
+       player.setVolume(player.getVolume() + 0.1);
+   }
+   else if (key.key == OF_KEY_DOWN)
+   {
+       player.setVolume(player.getVolume() - 0.1);
+   }
 
 }
 
@@ -196,22 +246,43 @@ void ofApp_1::keyReleased(int key){
 
 //--------------------------------------------------------------
 void ofApp_1::mouseMoved(int x, int y ){
-
+    if (ofGetWindowRect().inside(x, y))
+    {
+        lastMovement = ofGetSystemTimeMillis();
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp_1::mouseDragged(int x, int y, int button){
-
+    if (inScrub)
+    {
+        float position = static_cast<float>(x - BarInset) / getBarRectangle().width;
+        position = std::max(0.0f, std::min(position, 1.0f));
+        player.setPosition(position);
+        lastMovement = ofGetSystemTimeMillis();
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp_1::mousePressed(int x, int y, int button){
-
+    ofRectangle bar = getBarRectangle();
+    if (bar.inside(x, y))
+    {
+        inScrub = true;
+        wasPaused = player.isPaused() || player.getIsMovieDone();
+        player.setPaused(true);
+        mouseDragged(x, y, button);
+    }
+    lastMovement = ofGetSystemTimeMillis();
 }
 
 //--------------------------------------------------------------
 void ofApp_1::mouseReleased(int x, int y, int button){
-
+    if (inScrub)
+    {
+        inScrub = false;
+        player.setPaused(wasPaused);
+    }
 }
 
 //--------------------------------------------------------------
@@ -237,4 +308,9 @@ void ofApp_1::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp_1::dragEvent(ofDragInfo dragInfo){
 
+}
+
+ofRectangle ofApp_1::getBarRectangle() const
+{
+    return ofRectangle(BarInset, ofGetWindowHeight() - BarInset - BarHeight, ofGetWindowWidth() - (2 * BarInset), BarHeight);
 }

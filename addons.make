@@ -1,5 +1,6 @@
 ofxAutoReloadedShader
 ofxHapPlayer
+ofxLua
 ofxMSATimer
 ofxNetwork
 ofxOsc
