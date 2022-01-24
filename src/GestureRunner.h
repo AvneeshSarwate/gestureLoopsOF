@@ -21,6 +21,8 @@ using json = nlohmann::json;
 struct TimePoint {
     glm::vec2 pos;
     double ts;
+    float force; //is -1 if not specified (e.g., when controller is not apple pencil)
+    float azimuth; //can be -1 same as force
     TimePoint(glm::vec2 pos, double ts) : pos(pos), ts(ts) {};
 };
 typedef struct TimePoint TimePoint;

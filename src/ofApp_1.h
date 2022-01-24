@@ -44,11 +44,14 @@ class ofApp_1 : public ofBaseApp{
     
         bool penTouching;
         glm::vec2 touchPos;
+        double penForce;
+        double penAzimuth;
     
         double lastDrawTime;
     
         // sketch specific vars below here =============================
         vector<ofFbo*> pingpong;
+        ofFbo utility;
         ofFbo brush;
         int pingpong_ind = 0;
         ofxAutoReloadedShader shader;
@@ -63,5 +66,6 @@ class ofApp_1 : public ofBaseApp{
         bool wasPaused;
         bool drawBar;
         bool inScrub;
+        glm::vec2 loopRegion = glm::vec2(0, 1);
 };
 

@@ -31,6 +31,8 @@ void ofApp_1::setup(){
     //todo - figure out whether this is sketch specific or general
     ofxSubscribeOsc(7072, "/touching", penTouching);
     ofxSubscribeOsc(7072, "/touchPos", touchPos);
+    ofxSubscribeOsc(7072, "/penForce", penForce);
+    ofxSubscribeOsc(7072, "/penAzimuth", penAzimuth);
 
 	// set other options:
 	//settings.blocking = false;
@@ -61,6 +63,7 @@ void ofApp_1::setup(){
     initializeFBO(*pingpong[0]);
     initializeFBO(*pingpong[1]);
     initializeFBO(brush);
+    initializeFBO(utility);
     
     shader.load("sketch1/feedback");
     
@@ -69,11 +72,13 @@ void ofApp_1::setup(){
     
     ofxSubscribeOsc(7072, "/"+sketchId+"/schemeInd", schemeInd);
     ofxSubscribeOsc(7072, "/"+sketchId+"/delayTime", delayTime);
+    ofxSubscribeOsc(7072, "/"+sketchId+"/loopPosition", loopRegion);
     
     circPix.setup(120);
     
     player.setLoopState(OF_LOOP_NORMAL);
     player.load("movies/gore.mov");
+    
 }
 
 //--------------------------------------------------------------
@@ -128,23 +133,20 @@ void ofApp_1::update(){
     
     // sketch specific stuff below here ====================================================
     // Show or hide the cursor and position bar
-    if (ofGetSystemTimeMillis() - lastMovement < 3000)
-    {
+    if (ofGetSystemTimeMillis() - lastMovement < 3000){
         drawBar = true;
-    }
-    else
-    {
+    } else {
         drawBar = false;
     }
+    
     ofRectangle window = ofGetWindowRect();
-    if (!drawBar && window.inside(ofGetMouseX(), ofGetMouseY()))
-    {
+    if (!drawBar && window.inside(ofGetMouseX(), ofGetMouseY())) {
         ofHideCursor();
-    }
-    else
-    {
+    } else {
         ofShowCursor();
     }
+    auto pPos = player.getPosition();
+    if(pPos < loopRegion.x  ||  loopRegion.y  < pPos  ) player.setPosition(loopRegion.x);
 }
 
 void ofApp_1::drawToFbo() {
@@ -163,10 +165,16 @@ void ofApp_1::drawToFbo() {
             
             ofDrawCircle(pos.x, pos.y, 10);
         }
-        if(player.isLoaded()) player.draw(0, 0, ofGetWidth(), ofGetHeight());
+//        if(player.isLoaded()) player.draw(0, 0, ofGetWidth(), ofGetHeight());
     } brush.end();
     
     auto delayedFrame = circPix.getDelayedPixels(delayTime);
+    
+    if(player.isLoaded()) {
+        utility.begin(); {
+            player.draw(0, 0, ofGetWidth(), ofGetHeight());
+        } utility.end();
+    }
     
     dest->begin(); {
         ofClear(0, 0, 0, 0);
@@ -177,6 +185,7 @@ void ofApp_1::drawToFbo() {
             shader.setUniformTexture("brush", brush.getTexture(), 0);
             shader.setUniformTexture("backbuffer", src->getTexture(), 1);
             shader.setUniformTexture("delayedFrame", delayedFrame, 2);
+            shader.setUniformTexture("video", utility.getTexture(), 3);
             auto bbox_plane = getPlaneBbox(plane);
             setBBoxUniform(bbox_plane, shader);
             
@@ -192,10 +201,11 @@ void ofApp_1::drawToFbo() {
         dest->draw(0, 0, ofGetWidth(), ofGetHeight());
         
         if (penTouching) {
-            ofSetColor(255, 0, 0);
-            ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10);
+            ofSetColor(255, penAzimuth * 255, 0);
+            ofDrawCircle(touchPos.x * ofGetWidth(), (1-touchPos.y) * ofGetHeight(), 10 + penForce*10);
         }
-        
+        ofDrawBitmapString(std::to_string(penForce), 30, 30);
+        ofDrawBitmapString(std::to_string(penAzimuth), 30, 500);
         // Draw the position bar if appropriate
         if (drawBar)
         {

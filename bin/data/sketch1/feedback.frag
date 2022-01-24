@@ -5,6 +5,7 @@ uniform float time;
 uniform sampler2DRect brush;
 uniform sampler2DRect backbuffer;
 uniform sampler2DRect delayedFrame;
+uniform sampler2DRect video;
 uniform vec2 resolution;
 uniform int schemeInd;
 
@@ -25,6 +26,15 @@ vec2 quant(vec2 num, float quantLevels){
 vec2 rotate(vec2 space, vec2 center, float amount){
     return vec2(cos(amount) * (space.x - center.x) + sin(amount) * (space.y - center.y) + center.x,
         cos(amount) * (space.y - center.y) - sin(amount) * (space.x - center.x) + center.y);
+}
+//calculate the distance beterrn two colors
+// formula found here - https://stackoverflow.com/a/40950076
+float colourDistance(vec3 e1, vec3 e2) {
+  float rmean = (e1.r + e2.r ) / 2.;
+  float r = e1.r - e2.r;
+  float g = e1.g - e2.g;
+  float b = e1.b - e2.b;
+  return sqrt((((512.+rmean)*r*r)/256.) + 4.*g*g + (((767.-rmean)*b*b)/256.));
 }
 
 vec4 avgSample(sampler2DRect tex, vec2 nn, float dist){
@@ -57,23 +67,32 @@ void scheme2() {
 }
 
 void scheme3() {
-    vec4 col = texture(brush, uv*resolution);
+    vec2 cent = vec2(0.5);
+    vec2 vidN = mod(rotate(uv*3, cent*3, distance(uv, cent)*3*sinN(time)), vec2(1));
+    vidN = uv;
+    
+    vec4 vid = texture(video, vidN*resolution);
+    vec4 brush = texture(brush, uv*resolution);
     vec4 bb = texture(backbuffer, uv*resolution);
     vec4 bbAvg = avgSample(backbuffer, uv*resolution, 1);
+    vec4 delay0 = texture(delayedFrame, uv *resolution);
     vec4 delay1 = texture(delayedFrame, rotate(uv, vec2(0.5), 0.07) *resolution);
     vec4 delay2 = texture(delayedFrame, (uv+vec2(0, 0.1*sin(quant(time/3., 2)*3.))) *resolution);
     
-    vec4 delay = delay2;
-    vec4 warp = ((col/delay) - delay*pow(1-sinN(time), 50));
+    vec4 col = vid;
+    vec4 delay = delay0;
     
-    outputColor = mix(warp, bbAvg, 0.5);
+    vec4 warp = (col/delay) - bbAvg*0.1;
+    float dist = colourDistance(warp.rgb, bbAvg.rgb);
+//    warp = warp + colourDistance(warp.rgb, bbAvg.rgb)*0.05;
+    outputColor = mix(warp, bbAvg, .2);
 }
 
 
 
 void main()
 {
-    if(schemeInd == 0) outputColor = vec4(1, 0, 0, 1);;
+    if(schemeInd == 0) outputColor = vec4(0, 0, 0, 1);;
     if(schemeInd == 1) scheme1();
     if(schemeInd == 2) scheme2();
     if(schemeInd == 3) scheme3();

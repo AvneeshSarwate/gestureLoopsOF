@@ -18,6 +18,8 @@ vector<TimePoint> extractLoopData(json &loop) {
     vector<TimePoint> loopData;
     for(int i = 0; i < loopSize; i++) {
         TimePoint tp(glm::vec2(loop[i]["pos"]["x"], loop[i]["pos"]["y"]), loop[i]["ts"]);
+        tp.force = loop[i].value("force", -1);
+        tp.azimuth = loop[i].value("azimuth", -1);
         loopData.push_back(tp);
     }
     return loopData;
