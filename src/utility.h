@@ -53,4 +53,6 @@ protected:
     vector<ofFbo*> frames;
 };
 
+vector<float> getGesturePoints(vector<GestureRunner> gestures, int num);
+
 #endif /* utility_h */

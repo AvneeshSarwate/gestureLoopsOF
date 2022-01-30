@@ -9,6 +9,7 @@
 #include "ofxVoronoi.h"
 #include "GestureRunner.h"
 #include "utility.h"
+#include <algorithm>
 
 
 using json = nlohmann::json;
@@ -168,4 +169,19 @@ ofTexture& CircularPixelBuffer::getDelayedPixels(size_t delay){
     int outInd = ofWrap(delay + currentIndex, 0, frames.size());
     return frames[outInd]->getTexture();
 }
+
+vector<float> getGesturePoints(vector<GestureRunner> gestures, int num) {
+    int numPts = std::min(num, (int)gestures.size());
+    vector<float> xys;
+    for(int i = 0; i < numPts; i++) {
+        xys.push_back(gestures[i].pos.x);
+        xys.push_back(gestures[i].pos.y);
+    }
+    for(int i = numPts; i < num; i++) {
+        xys.push_back(0);
+        xys.push_back(0);
+    }
+    return xys;
+}
+
     

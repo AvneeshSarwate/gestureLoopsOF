@@ -53,7 +53,7 @@ vec4 avgSample(sampler2DRect tex, vec2 nn, float dist){
 void scheme1() {
     vec4 col = texture(brush, uv*resolution);
     vec4 bb = texture(backbuffer, quant(uv+vec2(sin(time+uv.y*6)*0.003, -0.005),400+sinN(time)*100)*resolution);
-    outputColor = col+bb;
+    outputColor = col+bb*bb.a;
     if(uv.y < 0.001) outputColor = vec4(0, 0, 0, 0);
 }
 
